@@ -1,33 +1,27 @@
 import torch
 from models import vgg19
-import gdown
 from PIL import Image
 from torchvision import transforms
 import gradio as gr
 import cv2
 import numpy as np
+import onnxruntime
 import scipy
 
-model_path = "pretrained_models/model_qnrf.pth"
-url = "https://drive.google.com/uc?id=1nnIHPaV9RGqK8JHL645zmRvkNrahD9ru"
-gdown.download(url, model_path, quiet=False)
+model_path = "dmcount.onnx"
+ort_session = onnxruntime.InferenceSession(model_path)
 
-device = torch.device('cpu')  # device can be "cpu" or "gpu"
-
-model = vgg19()
-model.to(device)
-model.load_state_dict(torch.load(model_path, device))
-model.eval()
-
+def to_numpy(tensor):
+    return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
 def predict(inp):
     inp = Image.fromarray(inp.astype('uint8'), 'RGB')
     inp = transforms.ToTensor()(inp).unsqueeze(0)
-    inp = inp.to(device)
     with torch.set_grad_enabled(False):
-        outputs, _ = model(inp)
-    count = torch.sum(outputs).item()
-    vis_img = outputs[0, 0].cpu().numpy()
+        ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(inp)}
+        outputs, _ = ort_session.run(None, ort_inputs)
+    count = np.sum(outputs).item()
+    vis_img = outputs[0, 0]
     # normalize density map values from 0 to 1, then map it to 0-255.
     vis_img = (vis_img - vis_img.min()) / (vis_img.max() - vis_img.min() + 1e-5)
     vis_img = (vis_img * 255).astype(np.uint8)

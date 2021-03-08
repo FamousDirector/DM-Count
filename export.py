@@ -3,8 +3,11 @@ from models import vgg19
 import onnxruntime
 import numpy as np
 import onnx
+import gdown
 
-model_path = "pretrained_models/model_sh_B.pth"
+model_path = "pretrained_models/model_qnrf.pth"
+url = "https://drive.google.com/uc?id=1nnIHPaV9RGqK8JHL645zmRvkNrahD9ru"
+gdown.download(url, model_path, quiet=False)
 output_model_filepath = "dmcount.onnx"
 
 device = torch.device('cuda')  # device can be "cpu" or "gpu"
