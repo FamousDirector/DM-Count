@@ -11,11 +11,15 @@ import scipy
 model_path = "dmcount.onnx"
 ort_session = onnxruntime.InferenceSession(model_path)
 
+model_height = 360
+model_width = 640
+
 def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
 def predict(inp):
     inp = Image.fromarray(inp.astype('uint8'), 'RGB')
+    inp = inp.resize((model_width, model_height), Image.BILINEAR)
     inp = transforms.ToTensor()(inp).unsqueeze(0)
     with torch.set_grad_enabled(False):
         ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(inp)}

@@ -28,8 +28,8 @@ torch.onnx.export(model,  # model being run
                   # do_constant_folding=True,  # whether to execute constant folding for optimization
                   input_names=['input'],  # the model's input names
                   output_names=['output'],  # the model's output names
-                  dynamic_axes={'input': {0: 'batch_size', 2: 'height', 3: 'width'},  # variable length axes
-                                'output': {0: 'batch_size', 2: 'height', 3: 'width'}}
+                  dynamic_axes={'input': {0: 'batch_size'},  # variable length axes
+                                'output': {0: 'batch_size'}}
                   )
 
 onnx_model = onnx.load(output_model_filepath)
